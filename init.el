@@ -124,7 +124,7 @@
     ;; Buffer
     "b" '(:ignore t :which-key "buffer")
     ;; Don't show an error because SPC b ESC is undefined, just abort
-    "b <escape>" '(keyboard-escape-quit :which-key t) 
+    "b <escape>" '(keyboard-escape-quit :which-key t)
     "bd"  'kill-current-buffer))
 
 (use-package ivy
@@ -204,3 +204,15 @@
 (require 'init-projectile)
 
 (require 'init-clojure)
+
+(use-package emacs
+  :hook (clojure-mode . eglot-ensure)
+  :hook (typescript-mode . eglot-ensure)
+  :hook (typescript-ts-mode . eglot-ensure)
+  :hook (js-ts-mode . eglot-ensure)
+  :general
+  (leader-keys
+    "l" '(:ignore t :which-key "lsp")
+    "l <escape>" '(keyboard-escape-quit :which-key t)
+    "l r" '(eglot-rename :which-key "rename")
+    "l a" '(eglot-code-actions :which-key "code actions")))

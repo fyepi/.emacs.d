@@ -1,2 +1,8 @@
 ;;; -*- coding: utf-8; mode: lisp-data -*-
-nil
+(("/home/fqye/projects/ztj/project.clj" . 4524)
+ ("/home/fqye/projects/ztj/src/ztj/core.clj" . 560)
+ ("/home/fqye/projects/ztj-mono/packages/fe/components/"
+  (dired-filename
+   . "/home/fqye/projects/ztj-mono/packages/fe/components/AccountSetting.tsx"))
+ ("/home/fqye/projects/ztj-mono/packages/fe/components/AccountSetting.tsx"
+  . 6100))
