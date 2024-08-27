@@ -1,0 +1,1 @@
+("~/projects/ztj-mono/packages/fe/" "~/projects/ztj-mono/")
