@@ -199,20 +199,12 @@
 
 (require 'init-global-config)
 
+(require 'init-tree-sitter)
+
 (require 'init-search)
 
 (require 'init-projectile)
 
 (require 'init-clojure)
 
-(use-package emacs
-  :hook (clojure-mode . eglot-ensure)
-  :hook (typescript-mode . eglot-ensure)
-  :hook (typescript-ts-mode . eglot-ensure)
-  :hook (js-ts-mode . eglot-ensure)
-  :general
-  (leader-keys
-    "l" '(:ignore t :which-key "lsp")
-    "l <escape>" '(keyboard-escape-quit :which-key t)
-    "l r" '(eglot-rename :which-key "rename")
-    "l a" '(eglot-code-actions :which-key "code actions")))
+(require 'init-lsp)

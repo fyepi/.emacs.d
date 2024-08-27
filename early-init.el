@@ -5,3 +5,5 @@
 
 ;; We're using straight.el instead of package.el, no need to load it
 (setq package-enable-at-startup nil)
+
+(setenv "LSP_USE_PLISTS" "true")

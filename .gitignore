@@ -1,3 +1,8 @@
 /straight
 /eln-cache
+/.backup
+/transient
+/site-elisp
+/auto-save-list
+/tree-sitter
 *~
