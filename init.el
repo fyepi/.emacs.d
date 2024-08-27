@@ -1,4 +1,4 @@
-;; PART 1
+;;; init.el --- -*- lexical-binding: t -*-
 
 (tool-bar-mode -1)             ; Hide the outdated icons
 (scroll-bar-mode -1)           ; Hide the always-visible scrollbar
@@ -179,8 +179,28 @@
   :config
   (setq backup-directory-alist `(("." . "~/.saves"))))
 
+;; LoadPath
+(defun update-to-load-path (folder)
+  "Update FOLDER and its subdirectories to `load-path'."
+  (let ((base folder))
+    (unless (member base load-path)
+      (add-to-list 'load-path base))
+    (dolist (f (directory-files base))
+      (let ((name (concat base "/" f)))
+        (when (and (file-directory-p name)
+                   (not (equal f ".."))
+                   (not (equal f ".")))
+          (unless (member base load-path)
+            (add-to-list 'load-path name)))))))
 
+(update-to-load-path (expand-file-name "elisp" user-emacs-directory))
 
+(require 'init-const)
 
+(require 'init-global-config)
+
+(require 'init-search)
+
+(require 'init-projectile)
 
 
