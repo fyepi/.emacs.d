@@ -127,26 +127,6 @@
     "b <escape>" '(keyboard-escape-quit :which-key t) 
     "bd"  'kill-current-buffer))
 
-(use-package projectile
-	:demand
-  :general
-  (leader-keys
-    :states 'normal
-    "SPC" '(projectile-find-file :which-key "find file")
-
-    ;; Buffers
-    "b b" '(projectile-switch-to-buffer :which-key "switch buffer")
-
-    ;; Projects
-    "p" '(:ignore t :which-key "projects")
-    "p <escape>" '(keyboard-escape-quit :which-key t)
-		"p p" '(projectile-switch-project :which-key "switch project")
-		"p a" '(projectile-add-known-project :which-key "add project")
-	  "p r" '(projectile-remove-known-project :which-key "remove project")
-    )
-	:init
-	(projectile-mode +1))
-
 (use-package ivy
   :init
   (ivy-mode))
@@ -199,70 +179,8 @@
   :config
   (setq backup-directory-alist `(("." . "~/.saves"))))
 
-(use-package company-mode
-  :init
-  (global-company-mode))
 
-;; eglot
-(use-package emacs
-  :hook (zig-mode . eglot-ensure)
-  :hook (rust-mode . eglot-ensure)
-  :hook (go-mode . eglot-ensure)
-  :hook (typescript-mode . eglot-ensure)
-  :general
-  (leader-keys
-    "l" '(:ignore t :which-key "lsp")
-    "l <escape>" '(keyboard-escape-quit :which-key t)
-    "l r" '(eglot-rename :which-key "rename")
-    "l a" '(eglot-code-actions :which-key "code actions")))
 
-(use-package treesit-auto
-  :custom
-  (treesit-auto-install 'prompt)
-  :config
-  (treesit-auto-add-to-auto-mode-alist 'all)
-  (global-treesit-auto-mode))
 
-(use-package markdown-mode
-  :config
-  (setq markdown-fontify-code-blocks-natively t))
-(use-package zig-mode
-  :general
-  (leader-keys
-    "m" '(:ignore t :which-key "mode")
-    "m <escape>" '(keyboard-escape-quit :which-key t)
-    "m b" '(zig-compile :which-key "build")
-    "m r" '(zig-run :which-key "run")
-    "m t" '(zig-test :which-key "test")))
-(use-package rust-mode
-  :general
-  (leader-keys
-    "m" '(:ignore t :which-key "mode")
-    "m <escape>" '(keyboard-escape-quit :which-key t)
-    "m b" '(rust-compile :which-key "build")
-    "m r" '(rust-run :which-key "run")
-    "m t" '(rust-test :which-key "test")
-    "m k" '(rust-check :which-key "check")
-    "m c" '(rust-run-clippy :which-key "clippy")))
-(use-package go-mode)
-(use-package gotest
-  :general
-  (leader-keys
-    "m" '(:ignore t :which-key "mode")
-    "m <escape>" '(keyboard-escape-quit :which-key t)
-    "m t" '(go-test-current-project :which-key "test")
-    "m r" '(go-run :which-key "run")))
-(use-package typescript-mode)
 
-(use-package rg
-  :general
-  (leader-keys
-    "f" '(rg-menu :which-key "find")))
 
-(use-package emacs
-  :init
-  (setq-default fill-column 80)
-  (set-face-attribute 'fill-column-indicator nil
-                      :foreground "#717C7C"
-                      :background "transparent")
-  (global-display-fill-column-indicator-mode 1))
