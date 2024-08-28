@@ -5,6 +5,7 @@
 (setq inhibit-splash-screen t) ; Remove the "Welcome to GNU Emacs" splash screen
 (setq use-file-dialog nil)      ; Ask for textual confirmation instead of GUI
 
+;; straight
 (defvar bootstrap-version)
 (let ((bootstrap-file
        (expand-file-name
@@ -25,9 +26,15 @@
 
 (setq straight-use-package-by-default t)
 (setq use-package-always-defer t)
+;; end straight
 
 (use-package gcmh
-  :demand
+  :ensure t
+  :hook (after-init . gcmh-mode)
+  :custom
+  (gcmh-idle-delay 'auto)
+  (gcmh-auto-idle-delay-factor 10)
+  (gcmh-low-cons-threshold minimal-emacs-gc-cons-threshold)
   :config
   (gcmh-mode 1))
 
@@ -149,13 +156,13 @@
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
 
-(use-package vterm)
-
-(use-package vterm-toggle
-  :general
-  (leader-keys
-    "'" '(vterm-toggle :which-key "terminal")))
-
+(use-package vterm
+  :ensure t
+  :defer t
+  :commands vterm
+  :config
+  ;; Speed up vterm
+  (setq vterm-timer-delay 0.01))
 
 (use-package emacs
   :init
