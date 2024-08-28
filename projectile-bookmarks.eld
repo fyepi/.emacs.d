@@ -1,1 +1,0 @@
-("~/.emacs.d/" "~/.emacs.d.fqye/" "~/projects/ztj-mono/packages/fe/" "~/projects/ztj-mono/")

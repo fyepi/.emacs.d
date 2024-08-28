@@ -22,6 +22,8 @@ The config is only tested on Linux.
 3. LSP
 4. Minimal UI
 
+## Built in programming lanugages support
+
 ## Install
 
 ```
