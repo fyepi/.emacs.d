@@ -8,5 +8,6 @@
 /recentf
 /elpa
 .lsp-session
+/site-elisp
 projectile-bookmarks.eld
 *~
