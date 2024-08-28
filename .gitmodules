@@ -1,0 +1,3 @@
+[submodule "site-elisp/combobulate"]
+	path = site-elisp/combobulate
+	url = https://github.com/mickeynp/combobulate
