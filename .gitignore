@@ -5,4 +5,6 @@
 /site-elisp
 /auto-save-list
 /tree-sitter
+/places
+/recentf
 *~
