@@ -8,6 +8,7 @@
   :mode (("\\.tsx\\'" . tsx-ts-mode)
          ("\\.cmake\\'" . cmake-ts-mode)
          ("\\.go\\'" . go-ts-mode)
+         ("\\.py\\'" . python-ts-mode)
          ("\\.js\\'" . typescript-ts-mode)
          ("\\.mjs\\'" . typescript-ts-mode)
          ("\\.mts\\'" . typescript-ts-mode)

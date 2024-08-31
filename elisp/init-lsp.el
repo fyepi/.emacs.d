@@ -4,6 +4,8 @@
 ;;;; Packages and functions related to completion, both in buffers and
 ;;;; the minibuffer
 
+(use-package flycheck)
+
 ;;; Code:
 ;;; CONSULT
 (use-package consult
@@ -202,6 +204,7 @@
            typescript-ts-mode
            json-ts-mode
            js-ts-mode
+           python-ts-mode
            prisma-ts-mode
            go-ts-mode) . lsp-deferred))
 

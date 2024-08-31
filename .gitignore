@@ -10,4 +10,6 @@
 .lsp-session
 /site-elisp
 projectile-bookmarks.eld
+session*
+amx-items
 *~

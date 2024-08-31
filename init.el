@@ -215,3 +215,5 @@
 (require 'init-clojure)
 
 (require 'init-lsp)
+
+(require 'init-restclient)
