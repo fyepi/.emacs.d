@@ -217,3 +217,5 @@
 (require 'init-lsp)
 
 (require 'init-restclient)
+
+(require 'init-crux)
