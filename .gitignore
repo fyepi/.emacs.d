@@ -13,3 +13,7 @@ projectile-bookmarks.eld
 session*
 amx-items
 *~
+tramp
+/url
+/.cache
+.dap-breakpoints

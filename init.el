@@ -72,11 +72,11 @@
 		(setq mac-option-modifier nil)
 		(setq mac-control-modifier 'control)))
 
-(setq custom-safe-themes t)
-(use-package kanagawa-theme
-  :demand
-  :config
-  (load-theme 'kanagawa))
+
+;; (use-package kanagawa-theme
+;;   :demand
+;;   :config
+;;   (load-theme 'kanagawa))
 
 (use-package emacs
   :init
@@ -219,3 +219,9 @@
 (require 'init-restclient)
 
 (require 'init-crux)
+
+(require 'init-undo-tree)
+
+(require 'init-formatting)
+
+(require 'init-theme)
