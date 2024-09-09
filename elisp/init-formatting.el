@@ -35,5 +35,9 @@
          .
          prettier-js-mode))
 
+(use-package format-all
+  :bind ("C-c C-f" . format-all-buffer))
+
+
 (provide 'init-formatting)
 ;;; init-formatting.el ends here

@@ -17,3 +17,6 @@ tramp
 /url
 /.cache
 .dap-breakpoints
+/var
+
+**/*.elc

@@ -28,6 +28,11 @@
 (setq use-package-always-defer t)
 ;; end straight
 
+;; no littering
+(use-package no-littering
+  :ensure t)
+
+
 (use-package gcmh
   :ensure t
   :hook (after-init . gcmh-mode)
@@ -139,14 +144,16 @@
   (ivy-mode))
 
 (use-package magit
-  :general
-  (leader-keys
-    "g" '(:ignore t :which-key "git")
-    "g <escape>" '(keyboard-escape-quit :which-key t)
-    "g g" '(magit-status :which-key "status")
-    "g l" '(magit-log :which-key "log"))
-  (general-nmap
-    "<escape>" #'transient-quit-one))
+  :if (executable-find "git")
+  :bind
+  (("C-x g" . magit-status)
+   (:map magit-status-mode-map
+         ("M-RET" . magit-diff-visit-file-other-window)))
+  :config
+  (defun magit-log-follow-current-file ()
+    "A wrapper around `magit-log-buffer-file' with `--follow' argument."
+    (interactive)
+    (magit-log-buffer-file t)))
 
 
 (use-package diff-hl
@@ -225,3 +232,5 @@
 (require 'init-formatting)
 
 (require 'init-theme)
+
+(require 'init-edit)
