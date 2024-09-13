@@ -1,4 +1,10 @@
 ;;; init-edit.el --- -*- lexical-binding: t -*-
+(use-package paredit
+          :hook ((clojure-ts-mode . paredit-mode)
+                 (clojure-mode . paredit-mode)
+                 (lisp-mode . paredit-mode)
+                 (emacs-lisp-mode . paredit-mode)))
+
 (use-package smartparens
   :hook (prog-mode . smartparens-mode)
   :diminish smartparens-mode

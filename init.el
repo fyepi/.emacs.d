@@ -234,3 +234,5 @@
 (require 'init-theme)
 
 (require 'init-edit)
+
+(require 'init-lisp)
