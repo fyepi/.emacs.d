@@ -5,6 +5,13 @@
                  (lisp-mode . paredit-mode)
                  (emacs-lisp-mode . paredit-mode)))
 
+;; smart comment
+(use-package evil-nerd-commenter
+  :bind
+  (("C-c M-;" . c-toggle-comment-style)
+   ("M-;" . evilnc-comment-or-uncomment-lines)))
+
+
 (use-package smartparens
   :hook (prog-mode . smartparens-mode)
   :diminish smartparens-mode
