@@ -20,3 +20,5 @@ tramp
 /var
 
 **/*.elc
+
+/workspace

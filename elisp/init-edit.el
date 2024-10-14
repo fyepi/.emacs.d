@@ -59,5 +59,9 @@
 (setq hscroll-step 1)
 (setq hscroll-margin 1)
 
+;;delete by camel case
+(add-hook 'prog-mode-hook 'subword-mode)
+
+
 
 (provide 'init-edit)
