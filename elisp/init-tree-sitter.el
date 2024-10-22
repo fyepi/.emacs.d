@@ -81,10 +81,13 @@
   ;;  M-x customize-group RET combobulate RET
   ;;
   (use-package combobulate
-    :preface
+    :straight nil
+    ;; :vc
+    ;; (:url "https://github.com/mickeynp/combobulate" :branch "bugfix/fix-straight")
+    :custom
     ;; You can customize Combobulate's key prefix here.
     ;; Note that you may have to restart Emacs for this to take effect!
-    (setq combobulate-key-prefix "C-c o")
+    (combobulate-key-prefix "C-c o")
 
     ;; Optional, but recommended.
     ;;
@@ -102,6 +105,11 @@
      (tsx-ts-mode . combobulate-mode))
     ;; Amend this to the directory where you keep Combobulate's source
     ;; code.
-    :load-path ("~/.emacs.d/site-elisp/combobulate")))
+    ;; :straight (:type git :host github :repo "mickeynp/combobulate" :branch "bugfix/fix-straight")
+    :load-path ("~/.emacs.d/site-elisp/combobulate")
+    ))
+
+
+
 
 (provide 'init-tree-sitter)
