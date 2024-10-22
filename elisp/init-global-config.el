@@ -10,6 +10,7 @@
 
 ;; DefBindings
 ;; Unbind unneeded keys
+(global-set-key (kbd "C-M-d") nil)
 (global-set-key (kbd "C-z") nil)
 (global-set-key (kbd "M-z") nil)
 (global-set-key (kbd "M-m") nil)
@@ -28,6 +29,8 @@
 (global-set-key (kbd "<f5>") #'revert-buffer-quick)
 ;; -DefBindings
 
+;; enable global auto revert
+(global-auto-revert-mode t)
 ;; UTF8Coding
 (unless *sys/win32*
   (set-selection-coding-system 'utf-8)
@@ -159,6 +162,8 @@ The original function deletes trailing whitespace of the current line."
 ;; Add a newline automatically at the end of the file upon save.
 (setq require-final-newline t)
 
+(setq auto-revert-use-notify nil)
+(setq auto-revert-interval 3)
 ;; Enable `erase-buffer' function
 (put 'erase-buffer 'disabled nil)
 
@@ -170,5 +175,13 @@ The original function deletes trailing whitespace of the current line."
 (add-to-list 'auto-mode-alist '("\\.bbclass\\'" . shell-script-mode))
 (add-to-list 'auto-mode-alist '("\\.Rmd\\'" . markdown-mode))
 ;; -SmallConfigs
+
+(defun save-all-buffers ()
+  "Instead of `save-buffer', save all opened buffers by calling `save-some-buffers' with ARG t."
+  (interactive)
+  (save-some-buffers t))
+
+(global-set-key (kbd "C-x C-s") nil)
+(global-set-key (kbd "C-x C-s") #'save-all-buffers)
 
 (provide 'init-global-config)
