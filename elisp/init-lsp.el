@@ -206,6 +206,7 @@
            js-ts-mode
            python-ts-mode
            prisma-ts-mode
+           swift-mode
            go-ts-mode) . lsp-deferred))
 
   :custom

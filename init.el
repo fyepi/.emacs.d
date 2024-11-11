@@ -236,3 +236,5 @@
 (require 'init-edit)
 
 (require 'init-lisp)
+
+(require 'init-swift)
