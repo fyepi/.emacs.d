@@ -255,6 +255,8 @@
   (lsp-lens-enable nil)                 ; Optional, I don't need it
   ;; semantic
   (lsp-semantic-tokens-enable nil)      ; Related to highlighting, and we defer to treesitter
+  ;; don't auto edito
+  (lsp-apply-edits-after-file-operations nil)
   :functions
   lsp-dependency
   lsp-register-client
