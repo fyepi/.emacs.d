@@ -207,6 +207,7 @@
            python-ts-mode
            prisma-ts-mode
            swift-mode
+           elixir-ts-mode
            go-ts-mode) . lsp-deferred))
 
   :custom

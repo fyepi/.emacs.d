@@ -238,3 +238,5 @@
 (require 'init-lisp)
 
 (require 'init-swift)
+
+(require 'init-elixir)

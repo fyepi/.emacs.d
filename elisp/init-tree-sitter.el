@@ -44,6 +44,8 @@
                (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "tsx/src"))
                (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "typescript/src"))
                (yaml . ("https://github.com/ikatyang/tree-sitter-yaml" "v0.5.0"))
+               (heex . ("https://github.com/phoenixframework/tree-sitter-heex"))
+               (elixir . ("https://github.com/elixir-lang/tree-sitter-elixir"))
                (prisma "https://github.com/victorhqc/tree-sitter-prisma")))
       (add-to-list 'treesit-language-source-alist grammar)
       ;; Only install `grammar' if we don't already have it
@@ -72,6 +74,7 @@
              (json-mode . json-ts-mode)
              (js-json-mode . json-ts-mode)
              (sh-mode . bash-ts-mode)
+             (elixir-mode . elixir-ts-mode)
              (sh-base-mode . bash-ts-mode)))
     (add-to-list 'major-mode-remap-alist mapping))
   :config
@@ -102,6 +105,7 @@
      (yaml-ts-mode . combobulate-mode)
      (typescript-ts-mode . combobulate-mode)
      (json-ts-mode . combobulate-mode)
+     (elixir-ts-mode . combobulate-mode)
      (tsx-ts-mode . combobulate-mode))
     ;; Amend this to the directory where you keep Combobulate's source
     ;; code.
