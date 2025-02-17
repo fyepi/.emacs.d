@@ -10,6 +10,8 @@
 ;;; Code:
 
 (use-package elixir-ts-mode
+  :init
+    (add-to-list 'exec-path "~/.local/elixir-ls/")
     :ensure t)
 
 (provide 'init-elixir)
