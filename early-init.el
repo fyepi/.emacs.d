@@ -135,7 +135,11 @@ When set to non-nil, Emacs will automatically call `package-initialize' and
                  'file-name-handler-alist
                  ;; Merge instead of overwrite to preserve any changes made
                  ;; since startup.
-                 (delete-dups (append file-name-handler-alist old-value))))
+                 (if (boundp old-value)
+                     (delete-dups (append file-name-handler-alist old-value))
+                   file-name-handler-alist
+                   )
+                 ))
               101))
 
   (unless noninteractive
