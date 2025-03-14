@@ -1,4 +1,7 @@
 ;; Don't flicker GUI elements on startup
+(add-to-list 'load-path "/usr/local/share/emacs/31.0.50/lisp"
+                          :append)
+
 (push '(menu-bar-lines . 0) default-frame-alist)
 (push '(tool-bar-lines . 0) default-frame-alist)
 (push '(vertical-scroll-bars) default-frame-alist)
