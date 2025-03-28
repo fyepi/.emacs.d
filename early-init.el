@@ -1,6 +1,5 @@
 ;; Don't flicker GUI elements on startup
-(add-to-list 'load-path "/usr/local/share/emacs/31.0.50/lisp"
-                          :append)
+
 
 (push '(menu-bar-lines . 0) default-frame-alist)
 (push '(tool-bar-lines . 0) default-frame-alist)
@@ -11,47 +10,112 @@
 
 (setenv "LSP_USE_PLISTS" "true")
 
-(defvar minimal-emacs-ui-features '(context-menu)
-  "List of user interface features to disable in minimal Emacs setup.
 
-;; Copied from https://github.com/jamescherti/minimal-emacs.d/blob/main/early-init.el
-
+(defvar minimal-emacs-ui-features '()
+  "List of user interface features to enable in minimal Emacs setup.
 This variable holds a list Emacs UI features that can be enabled:
-- `context-menu`: Enables the context menu in graphical environments.
-- `tool-bar`: Enables the tool bar in graphical environments.
-- `menu-bar`: Enables the menu bar in graphical environments.
-- `dialogs`: Enables both file dialogs and dialog boxes.
-- `tooltips`: Enables tooltips.
-
-Each feature in the list corresponds to a specific UI component that can be
-turned on.")
+- context-menu (Enables the context menu in graphical environments.)
+- tool-bar (Enables the tool bar in graphical environments.)
+- menu-bar (Enables the menu bar in graphical environments.)
+- dialogs (Enables both file dialogs and dialog boxes.)
+- tooltips (Enables tooltips.)")
 
 (defvar minimal-emacs-frame-title-format "%b – Emacs"
   "Template for displaying the title bar of visible and iconified frame.")
 
-(defvar minimal-emacs-debug nil
+(defvar minimal-emacs-debug (bound-and-true-p init-file-debug)
   "Non-nil to enable debug.")
 
-(defvar minimal-emacs-gc-cons-threshold (* 16 1024 1024)
-  "The value of `gc-cons-threshold' after Emacs startup.")
+(defvar minimal-emacs-gc-cons-threshold (* 32 1024 1024)
+  "Value to set `gc-cons-threshold' to after Emacs startup.
+Ignored if `minimal-emacs-optimize-startup-gc' is nil.")
+
+(defvar minimal-emacs-optimize-startup-gc t
+  "If non-nil, increase `gc-cons-threshold' during startup to reduce pauses.
+After Emacs finishes loading, `gc-cons-threshold' is restored to the value
+stored in `minimal-emacs--restore-gc-cons-threshold'.")
+
+(defvar minimal-emacs-inhibit-redisplay-during-startup nil
+  "Suppress redisplay during startup to improve performance.
+This prevents visual updates while Emacs initializes. The tradeoff is that you
+won't see the progress or activities during the startup process.")
+
+(defvar minimal-emacs-inhibit-message-during-startup nil
+  "Suppress startup messages for a cleaner experience.
+This slightly enhances performance. The tradeoff is that you won't be informed
+of the progress or any relevant activities during startup.")
+
+(defvar minimal-emacs-optimize-file-name-handler-alist t
+  "Enable optimization of `file-name-handler-alist'.
+When non-nil, this variable activates optimizations to reduce file name handler
+lookups during Emacs startup.")
+
+(defvar minimal-emacs-disable-mode-line-during-startup t
+  "Disable the mode line during startup.
+This reduces visual clutter and slightly enhances startup performance. The
+tradeoff is that the mode line is hidden during the startup phase.")
 
 (defvar minimal-emacs-package-initialize-and-refresh t
   "Whether to automatically initialize and refresh packages.
 When set to non-nil, Emacs will automatically call `package-initialize' and
 `package-refresh-contents' to set up and update the package system.")
 
+(defvar minimal-emacs-setup-native-compilation t
+  "If non-nil, enable and configure native compilation.
+When enabled, this variable sets the following:
+- `native-comp-deferred-compilation'
+- `native-comp-jit-compilation'
+- `package-native-compile'")
+
 (defvar minimal-emacs-user-directory user-emacs-directory
   "The default value of the `user-emacs-directory' variable.")
 
 ;;; Load pre-early-init.el
 
+;; Prefer loading newer compiled files
+(setq load-prefer-newer t)
+(setq debug-on-error minimal-emacs-debug)
+
+(defvar minimal-emacs--success nil)
+(defun minimal-emacs--check-success ()
+  "Verify that the Emacs configuration has loaded successfully."
+  (unless minimal-emacs--success
+    (cond
+     ((or (file-exists-p (expand-file-name "~/.emacs.el"))
+          (file-exists-p (expand-file-name "~/.emacs")))
+      (error "Emacs ignored loading 'init.el'. Please ensure that files such as ~/.emacs or ~/.emacs.el do not exist, as they may be preventing Emacs from loading the 'init.el' file"))
+
+     (t
+      (error "Configuration error. Debug by starting Emacs with: emacs --debug-init")))))
+(add-hook 'emacs-startup-hook #'minimal-emacs--check-success 102)
+
+(defvar minimal-emacs-load-compiled-init-files nil
+  "If non-nil, attempt to load byte-compiled .elc for init files.
+This will enable minimal-emacs to load byte-compiled or possibly native-compiled
+init files for the following initialization files: pre-init.el, post-init.el,
+pre-early-init.el, and post-early-init.el.")
+
+(defun minimal-emacs--remove-el-file-suffix (filename)
+  "Remove the Elisp file suffix from FILENAME and return it (.el, .el.gz...)."
+  (let ((suffixes (mapcar (lambda (ext) (concat ".el" ext))
+                          load-file-rep-suffixes)))
+    (catch 'done
+      (dolist (suffix suffixes filename)
+        (when (string-suffix-p suffix filename)
+          (setq filename (substring filename 0 (- (length suffix))))
+          (throw 'done t))))
+    filename))
+
 (defun minimal-emacs-load-user-init (filename)
   "Execute a file of Lisp code named FILENAME."
-  (let ((user-init-file
-         (expand-file-name filename
-                           minimal-emacs-user-directory)))
-    (when (file-exists-p user-init-file)
-      (load user-init-file nil t))))
+  (let ((init-file (expand-file-name filename
+                                     minimal-emacs-user-directory)))
+    (if (not minimal-emacs-load-compiled-init-files)
+        (load init-file :no-error :no-message :nosuffix)
+      ;; Remove the file suffix (.el, .el.gz, etc.) to let the `load' function
+      ;; select between .el and .elc files.
+      (setq init-file (minimal-emacs--remove-el-file-suffix init-file))
+      (load init-file :no-error :no-message))))
 
 (minimal-emacs-load-user-init "pre-early-init.el")
 
@@ -59,161 +123,19 @@ When set to non-nil, Emacs will automatically call `package-initialize' and
       (expand-file-name "themes/" minimal-emacs-user-directory))
 (setq custom-file (expand-file-name "custom.el" minimal-emacs-user-directory))
 
-;;; Misc
-
-(set-language-environment "UTF-8")
-
-;; Set-language-environment sets default-input-method, which is unwanted.
-(setq default-input-method nil)
-
-;; Some features that are not represented as packages can be found in
-;; `features', but this can be inconsistent. The following enforce consistency:
-(if (fboundp #'json-parse-string)
-    (push 'jansson features))
-(if (string-match-p "HARFBUZZ" system-configuration-features) ; no alternative
-    (push 'harfbuzz features))
-(if (bound-and-true-p module-file-suffix)
-    (push 'dynamic-modules features))
-
 ;;; Garbage collection
 ;; Garbage collection significantly affects startup times. This setting delays
 ;; garbage collection during startup but will be reset later.
 
-(setq gc-cons-threshold most-positive-fixnum)
+(setq garbage-collection-messages minimal-emacs-debug)
 
-(add-hook 'emacs-startup-hook
-          (lambda ()
-            (setq gc-cons-threshold minimal-emacs-gc-cons-threshold)))
+(defun minimal-emacs--restore-gc-cons-threshold ()
+  "Restore `minimal-emacs-gc-cons-threshold'."
+  (setq gc-cons-threshold minimal-emacs-gc-cons-threshold))
 
-;;; Performance
-
-;; Prefer loading newer compiled files
-(setq load-prefer-newer t)
-
-;; Increase how much is read from processes in a single chunk (default is 4kb).
-(setq read-process-output-max (* 512 1024))  ; 512kb
-
-;; Reduce rendering/line scan work by not rendering cursors or regions in
-;; non-focused windows.
-(setq-default cursor-in-non-selected-windows nil)
-(setq highlight-nonselected-windows nil)
-
-;; Disable warnings from the legacy advice API. They aren't useful.
-(setq ad-redefinition-action 'accept)
-
-(setq warning-suppress-types '((lexical-binding)))
-
-;; Don't ping things that look like domain names.
-(setq ffap-machine-p-known 'reject)
-
-;; By default, Emacs "updates" its ui more often than it needs to
-(setq idle-update-delay 1.0)
-
-;; Font compacting can be very resource-intensive, especially when rendering
-;; icon fonts on Windows. This will increase memory usage.
-(setq inhibit-compacting-font-caches t)
-
-(unless (daemonp)
-  (let ((old-value (default-toplevel-value 'file-name-handler-alist)))
-    (set-default-toplevel-value
-     'file-name-handler-alist
-     ;; Determine the state of bundled libraries using calc-loaddefs.el.
-     ;; If compressed, retain the gzip handler in `file-name-handler-alist`.
-     ;; If compiled or neither, omit the gzip handler during startup for
-     ;; improved startup and package load time.
-     (if (eval-when-compile
-           (locate-file-internal "calc-loaddefs.el" load-path))
-         nil
-       (list (rassq 'jka-compr-handler old-value))))
-    ;; Ensure the new value persists through any current let-binding.
-    (set-default-toplevel-value 'file-name-handler-alist
-                                file-name-handler-alist)
-    ;; Remember the old value to reset it as needed.
-    (add-hook 'emacs-startup-hook
-              (lambda ()
-                (set-default-toplevel-value
-                 'file-name-handler-alist
-                 ;; Merge instead of overwrite to preserve any changes made
-                 ;; since startup.
-                 (if (boundp old-value)
-                     (delete-dups (append file-name-handler-alist old-value))
-                   file-name-handler-alist
-                   )
-                 ))
-              101))
-
-  (unless noninteractive
-    (progn
-      ;; Disable mode-line-format during init
-      (defun minimal-emacs--reset-inhibited-vars-h ()
-        (setq-default inhibit-redisplay nil
-                      ;; Inhibiting `message' only prevents redraws and
-                      inhibit-message nil)
-        (redraw-frame))
-
-      (defvar minimal-emacs--default-mode-line-format mode-line-format
-        "Default value of `mode-line-format'.")
-      (setq-default mode-line-format nil)
-
-      (defun minimal-emacs--startup-load-user-init-file (fn &rest args)
-        "Advice for startup--load-user-init-file to reset mode-line-format."
-        (let (init)
-          (unwind-protect
-              (progn
-                (apply fn args)  ; Start up as normal
-                (setq init t))
-            (unless init
-              ;; If we don't undo inhibit-{message, redisplay} and there's an
-              ;; error, we'll see nothing but a blank Emacs frame.
-              (minimal-emacs--reset-inhibited-vars-h))
-            (unless (default-toplevel-value 'mode-line-format)
-              (setq-default mode-line-format
-                            minimal-emacs--default-mode-line-format)))))
-
-      (advice-add 'startup--load-user-init-file :around
-                  #'minimal-emacs--startup-load-user-init-file))
-
-    ;; Without this, Emacs will try to resize itself to a specific column size
-    (setq frame-inhibit-implied-resize t)
-
-    ;; A second, case-insensitive pass over `auto-mode-alist' is time wasted.
-    ;; No second pass of case-insensitive search over auto-mode-alist.
-    (setq auto-mode-case-fold nil)
-
-    ;; Reduce *Message* noise at startup. An empty scratch buffer (or the
-    ;; dashboard) is more than enough, and faster to display.
-    (setq inhibit-startup-screen t
-          inhibit-startup-echo-area-message user-login-name)
-    (setq initial-buffer-choice nil
-          inhibit-startup-buffer-menu t
-          inhibit-x-resources t)
-
-    ;; Disable bidirectional text scanning for a modest performance boost.
-    (setq-default bidi-display-reordering 'left-to-right
-                  bidi-paragraph-direction 'left-to-right)
-
-    ;; Give up some bidirectional functionality for slightly faster re-display.
-    (setq bidi-inhibit-bpa t)
-
-    ;; Remove "For information about GNU Emacs..." message at startup
-    (advice-add #'display-startup-echo-area-message :override #'ignore)
-
-    ;; Suppress the vanilla startup screen completely. We've disabled it with
-    ;; `inhibit-startup-screen', but it would still initialize anyway.
-    (advice-add #'display-startup-screen :override #'ignore)
-
-    ;; Shave seconds off startup time by starting the scratch buffer in
-    ;; `fundamental-mode'
-    (setq initial-major-mode 'fundamental-mode
-          initial-scratch-message nil)
-
-    (unless minimal-emacs-debug
-      ;; Unset command line options irrelevant to the current OS. These options
-      ;; are still processed by `command-line-1` but have no effect.
-      (unless (eq system-type 'darwin)
-        (setq command-line-ns-option-alist nil))
-      (unless (memq initial-window-system '(x pgtk))
-        (setq command-line-x-option-alist nil)))))
+(when minimal-emacs-optimize-startup-gc
+  (setq gc-cons-threshold most-positive-fixnum)
+  (add-hook 'emacs-startup-hook #'minimal-emacs--restore-gc-cons-threshold 105))
 
 ;;; Native compilation and Byte compilation
 
@@ -221,22 +143,200 @@ When set to non-nil, Emacs will automatically call `package-initialize' and
          (fboundp 'native-comp-available-p)
          (native-comp-available-p))
     ;; Activate `native-compile'
-    (setq native-comp-jit-compilation t
-          native-comp-deferred-compilation t  ; Obsolete since Emacs 29.1
-          package-native-compile t)
+    (setq native-comp-deferred-compilation minimal-emacs-setup-native-compilation
+          native-comp-jit-compilation minimal-emacs-setup-native-compilation
+          package-native-compile minimal-emacs-setup-native-compilation)
   ;; Deactivate the `native-compile' feature if it is not available
   (setq features (delq 'native-compile features)))
 
-;; Suppress compiler warnings and don't inundate users with their popups.
-(setq native-comp-async-report-warnings-errors
-      (or minimal-emacs-debug 'silent))
-(setq native-comp-warning-on-missing-source minimal-emacs-debug)
+(setq native-comp-warning-on-missing-source minimal-emacs-debug
+      native-comp-async-report-warnings-errors (or minimal-emacs-debug 'silent)
+      native-comp-verbose (if minimal-emacs-debug 1 0))
 
-(setq debug-on-error minimal-emacs-debug
-      jka-compr-verbose minimal-emacs-debug)
+(setq jka-compr-verbose minimal-emacs-debug)
+(setq byte-compile-warnings minimal-emacs-debug
+      byte-compile-verbose minimal-emacs-debug)
 
-(setq byte-compile-warnings minimal-emacs-debug)
-(setq byte-compile-verbose minimal-emacs-debug)
+;;; Miscellaneous
+
+(set-language-environment "UTF-8")
+
+;; Set-language-environment sets default-input-method, which is unwanted.
+(setq default-input-method nil)
+
+;; Increase how much is read from processes in a single chunk
+(setq read-process-output-max (* 2 1024 1024))  ; 1024kb
+
+(setq process-adaptive-read-buffering nil)
+
+;; Don't ping things that look like domain names.
+(setq ffap-machine-p-known 'reject)
+
+(setq warning-minimum-level (if minimal-emacs-debug :warning :error))
+(setq warning-suppress-types '((lexical-binding)))
+
+;;; Performance: Miscellaneous options
+
+;; Font compacting can be very resource-intensive, especially when rendering
+;; icon fonts on Windows. This will increase memory usage.
+(setq inhibit-compacting-font-caches t)
+
+(when (and (not (daemonp)) (not noninteractive))
+  ;; Without this, Emacs will try to resize itself to a specific column size
+  (setq frame-inhibit-implied-resize t)
+
+  ;; A second, case-insensitive pass over `auto-mode-alist' is time wasted.
+  ;; No second pass of case-insensitive search over auto-mode-alist.
+  (setq auto-mode-case-fold nil)
+
+  ;; Reduce *Message* noise at startup. An empty scratch buffer (or the
+  ;; dashboard) is more than enough, and faster to display.
+  (setq inhibit-startup-screen t
+        inhibit-startup-echo-area-message user-login-name)
+  (setq initial-buffer-choice nil
+        inhibit-startup-buffer-menu t
+        inhibit-x-resources t)
+
+  ;; Disable bidirectional text scanning for a modest performance boost.
+  (setq-default bidi-display-reordering 'left-to-right
+                bidi-paragraph-direction 'left-to-right)
+
+  ;; Give up some bidirectional functionality for slightly faster re-display.
+  (setq bidi-inhibit-bpa t)
+
+  ;; Remove "For information about GNU Emacs..." message at startup
+  (advice-add 'display-startup-echo-area-message :override #'ignore)
+
+  ;; Suppress the vanilla startup screen completely. We've disabled it with
+  ;; `inhibit-startup-screen', but it would still initialize anyway.
+  (advice-add 'display-startup-screen :override #'ignore)
+
+  ;; Shave seconds off startup time by starting the scratch buffer in
+  ;; `fundamental-mode'
+  (setq initial-major-mode 'fundamental-mode
+        initial-scratch-message nil)
+
+  (unless minimal-emacs-debug
+    ;; Unset command line options irrelevant to the current OS. These options
+    ;; are still processed by `command-line-1` but have no effect.
+    (unless (eq system-type 'darwin)
+      (setq command-line-ns-option-alist nil))
+    (unless (memq initial-window-system '(x pgtk))
+      (setq command-line-x-option-alist nil))))
+
+;;; Performance: File-name-handler-alist
+
+(defvar minimal-emacs--old-file-name-handler-alist (default-toplevel-value
+                                                    'file-name-handler-alist))
+
+(defun minimal-emacs--respect-file-handlers (fn args-left)
+  "Respect file handlers.
+FN is the function and ARGS-LEFT is the same argument as `command-line-1'.
+Emacs processes command-line files very early in startup. These files may
+include special paths like TRAMP paths, so restore `file-name-handler-alist' for
+this stage of initialization."
+  (let ((file-name-handler-alist (if args-left
+                                     minimal-emacs--old-file-name-handler-alist
+                                   file-name-handler-alist)))
+    (funcall fn args-left)))
+
+(defun minimal-emacs--restore-file-name-handler-alist ()
+  "Restore `file-name-handler-alist'."
+  (set-default-toplevel-value
+   'file-name-handler-alist
+   ;; Merge instead of overwrite to preserve any changes made since startup.
+   (delete-dups (append file-name-handler-alist
+                        minimal-emacs--old-file-name-handler-alist))))
+
+(when (and minimal-emacs-optimize-file-name-handler-alist
+           (not (daemonp))
+           (not minimal-emacs-debug))
+  ;; Determine the state of bundled libraries using calc-loaddefs.el. If
+  ;; compressed, retain the gzip handler in `file-name-handler-alist`. If
+  ;; compiled or neither, omit the gzip handler during startup for improved
+  ;; startup and package load time.
+  (set-default-toplevel-value
+   'file-name-handler-alist
+   (if (locate-file-internal "calc-loaddefs.el" load-path)
+       nil
+     (list (rassq 'jka-compr-handler
+                  minimal-emacs--old-file-name-handler-alist))))
+
+  ;; Ensure the new value persists through any current let-binding.
+  (put 'file-name-handler-alist 'initial-value
+       minimal-emacs--old-file-name-handler-alist)
+
+  ;; Emacs processes command-line files very early in startup. These files may
+  ;; include special paths TRAMP. Restore `file-name-handler-alist'.
+  (advice-add 'command-line-1 :around #'minimal-emacs--respect-file-handlers)
+
+  (add-hook 'emacs-startup-hook #'minimal-emacs--restore-file-name-handler-alist
+            101))
+
+;;; Performance: Inhibit redisplay
+
+(defun minimal-emacs--reset-inhibit-redisplay ()
+  "Reset inhibit redisplay."
+  (setq-default inhibit-redisplay nil)
+  (remove-hook 'post-command-hook #'minimal-emacs--reset-inhibit-redisplay))
+
+(when (and minimal-emacs-inhibit-redisplay-during-startup
+           (not (daemonp))
+           (not noninteractive)
+           (not minimal-emacs-debug))
+  ;; Suppress redisplay and redraw during startup to avoid delays and
+  ;; prevent flashing an unstyled Emacs frame.
+  (setq-default inhibit-redisplay t)
+  (add-hook 'post-command-hook #'minimal-emacs--reset-inhibit-redisplay -100))
+
+;;; Performance: Inhibit message
+
+(defun minimal-emacs--reset-inhibit-message ()
+  "Reset inhibit message."
+  (setq-default inhibit-message nil)
+  (remove-hook 'post-command-hook #'minimal-emacs--reset-inhibit-message))
+
+(when (and minimal-emacs-inhibit-message-during-startup
+           (not (daemonp))
+           (not noninteractive)
+           (not minimal-emacs-debug))
+  (setq-default inhibit-message t)
+  (add-hook 'post-command-hook #'minimal-emacs--reset-inhibit-message -100))
+
+;;; Performance: Disable mode-line during startup
+
+(when (and minimal-emacs-disable-mode-line-during-startup
+           (not (daemonp))
+           (not noninteractive)
+           (not minimal-emacs-debug))
+  (put 'mode-line-format
+       'initial-value (default-toplevel-value 'mode-line-format))
+  (setq-default mode-line-format nil)
+  (dolist (buf (buffer-list))
+    (with-current-buffer buf
+      (setq mode-line-format nil))))
+
+;;; Restore values
+
+(defun minimal-emacs--startup-load-user-init-file (fn &rest args)
+  "Advice to reset `mode-line-format'. FN and ARGS are the function and args."
+  (unwind-protect
+      ;; Start up as normal
+      (apply fn args)
+    ;; If we don't undo inhibit-{message, redisplay} and there's an error, we'll
+    ;; see nothing but a blank Emacs frame.
+    (when minimal-emacs-inhibit-message-during-startup
+      (setq-default inhibit-message nil))
+    (when minimal-emacs-inhibit-redisplay-during-startup
+      (setq-default inhibit-redisplay nil))
+    ;; Restore the mode-line
+    (when minimal-emacs-disable-mode-line-during-startup
+      (unless (default-toplevel-value 'mode-line-format)
+        (setq-default mode-line-format (get 'mode-line-format
+                                            'initial-value))))))
+
+(advice-add 'startup--load-user-init-file :around
+            #'minimal-emacs--startup-load-user-init-file)
 
 ;;; UI elements
 
@@ -256,15 +356,23 @@ When set to non-nil, Emacs will automatically call `package-initialize' and
   (unless (memq window-system '(mac ns))
     (setq menu-bar-mode nil)))
 
-(unless (daemonp)
-  (unless noninteractive
+(defun minimal-emacs--setup-toolbar (&rest _)
+  "Setup the toolbar."
+  (when (fboundp 'tool-bar-setup)
+    (advice-remove 'tool-bar-setup #'ignore)
+    (when (bound-and-true-p tool-bar-mode)
+      (funcall 'tool-bar-setup))))
+
+(when (and (not (daemonp))
+           (not noninteractive))
+  (when (fboundp 'tool-bar-setup)
     ;; Temporarily override the tool-bar-setup function to prevent it from
     ;; running during the initial stages of startup
-    (advice-add #'tool-bar-setup :override #'ignore)
-    (define-advice startup--load-user-init-file
-        (:before (&rest _) minimal-emacs-setup-toolbar)
-      (advice-remove #'tool-bar-setup #'ignore)
-      (tool-bar-setup))))
+    (advice-add 'tool-bar-setup :override #'ignore)
+
+    (advice-add 'startup--load-user-init-file :after
+                #'minimal-emacs--setup-toolbar)))
+
 (unless (memq 'tool-bar minimal-emacs-ui-features)
   (push '(tool-bar-lines . 0) default-frame-alist)
   (setq tool-bar-mode nil))
@@ -272,8 +380,6 @@ When set to non-nil, Emacs will automatically call `package-initialize' and
 (push '(vertical-scroll-bars) default-frame-alist)
 (push '(horizontal-scroll-bars) default-frame-alist)
 (setq scroll-bar-mode nil)
-(when (fboundp 'horizontal-scroll-bar-mode)
-  (horizontal-scroll-bar-mode -1))
 
 (unless (memq 'tooltips minimal-emacs-ui-features)
   (when (bound-and-true-p tooltip-mode)
@@ -285,25 +391,29 @@ When set to non-nil, Emacs will automatically call `package-initialize' and
   (setq use-file-dialog nil)
   (setq use-dialog-box nil))
 
-;; Allow for shorter responses: "y" for yes and "n" for no.
-(if (boundp 'use-short-answers)
-    (setq use-short-answers t)
-  (advice-add #'yes-or-no-p :override #'y-or-n-p))
-(defalias #'view-hello-file #'ignore)  ; Never show the hello file
+;;; Security
+(setq gnutls-verify-error t)  ; Prompts user if there are certificate issues
+(setq tls-checktrust t)  ; Ensure SSL/TLS connections undergo trust verification
+(setq gnutls-min-prime-bits 3072)  ; Stronger GnuTLS encryption
 
 ;;; package.el
-(setq package-quickstart nil)
+(setq use-package-compute-statistics minimal-emacs-debug)
+
+;; Setting use-package-expand-minimally to (t) results in a more compact output
+;; that emphasizes performance over clarity.
+(setq use-package-expand-minimally (not minimal-emacs-debug))
+
+(setq use-package-minimum-reported-time (if minimal-emacs-debug 0 0.1))
+(setq use-package-verbose minimal-emacs-debug)
+(setq package-enable-at-startup nil)  ; Let the init.el file handle this
+(setq use-package-always-ensure t)
+(setq use-package-enable-imenu-support t)
 (setq package-archives '(("melpa" . "https://melpa.org/packages/")
-                         ("melpa-stable" . "https://stable.melpa.org/packages/")
                          ("gnu" . "https://elpa.gnu.org/packages/")
                          ("nongnu" . "https://elpa.nongnu.org/nongnu/")))
 (customize-set-variable 'package-archive-priorities '(("gnu"    . 99)
                                                       ("nongnu" . 80)
-                                                      ("stable" . 70)
-                                                      ("melpa"  . 0)))
-
-;; Ensure that some built-in (e.g., org-mode) are always up to date
-(setq package-install-upgrade-built-in t)
+                                                      ("melpa"  . 70)))
 
 ;;; Load post-early-init.el
 (minimal-emacs-load-user-init "post-early-init.el")
