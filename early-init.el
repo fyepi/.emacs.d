@@ -1,15 +1,20 @@
-;; Don't flicker GUI elements on startup
+;;; early-init.el --- Early Init -*- lexical-binding: t; -*-
 
+;; Author: James Cherti
+;; URL: https://github.com/jamescherti/minimal-emacs.d
+;; Package-Requires: ((emacs "29.1"))
+;; Keywords: maint
+;; Version: 1.2.0
+;; SPDX-License-Identifier: GPL-3.0-or-later
 
-(push '(menu-bar-lines . 0) default-frame-alist)
-(push '(tool-bar-lines . 0) default-frame-alist)
-(push '(vertical-scroll-bars) default-frame-alist)
+;;; Commentary:
+;; The minimal-emacs.d project is a customizable base that provides better Emacs
+;; defaults and optimized startup, intended to serve as a solid foundation for
+;; your vanilla Emacs configuration.
 
-;; We're using straight.el instead of package.el, no need to load it
-(setq package-enable-at-startup nil)
+;;; Code:
 
-(setenv "LSP_USE_PLISTS" "true")
-
+;;; Variables
 
 (defvar minimal-emacs-ui-features '()
   "List of user interface features to enable in minimal Emacs setup.
@@ -417,3 +422,11 @@ this stage of initialization."
 
 ;;; Load post-early-init.el
 (minimal-emacs-load-user-init "post-early-init.el")
+
+(provide 'early-init)
+
+;; Local variables:
+;; byte-compile-warnings: (not obsolete free-vars)
+;; End:
+
+;;; early-init.el ends here
