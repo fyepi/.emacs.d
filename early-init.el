@@ -1,3 +1,4 @@
+;;; early-init.el --- Early Init -*- lexical-binding: t; -*-
 ;; Don't flicker GUI elements on startup
 (add-to-list 'load-path "/usr/local/share/emacs/31.0.50/lisp"
                           :append)
